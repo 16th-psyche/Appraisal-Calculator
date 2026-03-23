@@ -2,6 +2,8 @@
 
 A beautifully designed, client-side single-page application built to streamline and calculate employee performance evaluations, budget projections, and compensation hikes. 
 
+<a href="https://16th-psyche.github.io/Appraisal-Calculator/">Appraisal Calculator</a>
+
 ## 🚀 Features
 
 - **Role-Based Presets:** Automatically pre-fills standard weightage distributions for different corporate hierarchies (L1 Junior Execs through L4 Senior Managers) while fully supporting custom overrides.
