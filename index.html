@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Performance Appraisal Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* ─── CORE BRAND (unchanged) ─── */
+    --accent: #ffc938;
+    --accent-hover: #e6b200;
+    --accent-light: rgba(255,201,56,0.12);
+    --accent-text: #7a5500;
+    --navy: #1b2f4e;
+    --orange: #f7951a;
+    --success: #34C759;
+    --danger: #FF3B30;
+    --warning: #F5C518;
+
+    /* ─── DASHBOARD SURFACES (optimized) ─── */
+    --bg: #f3f2ee;
+    --surface: #ffffff;
+    --surface-2: #f7f6f3;
+    --surface-raised: #ffffff;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.14);
+
+    /* ─── DASHBOARD TEXT ─── */
+    --text-1: #111112;
+    --text-2: #46464e;
+    --text-3: #74747c;
+    --text-inverse: #ffffff;
+
+    /* ─── DATA VIZ PALETTE ─── */
+    --viz-1: #ffc938;
+    --viz-2: #1b2f4e;
+    --viz-3: #f7951a;
+    --viz-4: #34C759;
+    --viz-5: #6366f1;
+    --viz-6: #ec4899;
+    --viz-7: #06b6d4;
+    --viz-8: #8b5cf6;
+
+    /* ─── DASHBOARD SPACING SCALE ─── */
+    --space-2: 2px;
+    --space-4: 4px;
+    --space-6: 6px;
+    --space-8: 8px;
+    --space-10: 10px;
+    --space-12: 12px;
+    --space-16: 16px;
+    --space-20: 20px;
+    --space-24: 24px;
+    --space-32: 32px;
+
+    /* ─── DASHBOARD RADII ─── */
+    --radius-xs: 3px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+    --radius-pill: 980px;
+
+    /* ─── DASHBOARD SHADOWS ─── */
+    --shadow-flat: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+    --shadow-hover: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-modal: 0 8px 32px rgba(0,0,0,0.12);
+
+    /* ─── DASHBOARD TYPOGRAPHY ─── */
+    --font-family: 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+  }
+
+  html { scroll-behavior: smooth; font-size: 14px; }
+
+  body {
+    font-family: var(--font-family);
+    background: var(--bg);
+    color: var(--text-1);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(16px) saturate(1.6);
+    -webkit-backdrop-filter: blur(16px) saturate(1.6);
+    border-bottom: 1px solid var(--border);
+    padding: 0 var(--space-24);
+    display: flex; align-items: center; gap: var(--space-20);
+    height: 44px;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; margin-right: auto; }
+  .nav-logo img { height: 22px; }
+  .nav-logo span { font-weight: 700; font-size: 12px; color: var(--text-1); letter-spacing: -0.01em; }
+  .nav-badge { font-size: 10px; font-weight: 600; color: var(--accent-text); background: var(--accent-light); padding: 2px 7px; border-radius: var(--radius-pill); border: 1px solid rgba(255,201,56,0.25); }
+  nav a { font-size: 12px; font-weight: 500; color: var(--text-3); text-decoration: none; white-space: nowrap; transition: color 0.15s; }
+  nav a:hover { color: var(--text-1); }
+
+  /* ─── HERO ─── */
+  .hero {
+    padding: 40px var(--space-24) 32px;
+    max-width: 980px; margin: 0 auto; text-align: center;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent-text); background: var(--accent-light);
+    border: 1px solid rgba(255,201,56,0.25); border-radius: var(--radius-pill);
+    padding: 3px 10px; margin-bottom: 14px;
+  }
+  .hero-eyebrow::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+  .hero h1 {
+    font-size: clamp(28px, 4vw, 42px); font-weight: 800;
+    letter-spacing: -0.035em; line-height: 1.15; margin-bottom: 10px;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent-hover); }
+  .hero p {
+    font-size: 13px; color: var(--text-2); max-width: 520px;
+    margin: 0 auto 20px; line-height: 1.6;
+  }
+  .hero-meta {
+    display: flex; align-items: center; justify-content: center;
+    gap: 14px; font-size: 11px; color: var(--text-3);
+  }
+  .hero-meta strong { color: var(--text-2); font-weight: 600; }
+
+  /* ─── LAYOUT ─── */
+  .page { max-width: 1080px; margin: 0 auto; padding: 0 var(--space-24) 60px; }
+  section { margin-bottom: 40px; }
+  .section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent-text); margin-bottom: 4px;
+  }
+  .section-title {
+    font-size: 20px; font-weight: 800; letter-spacing: -0.025em;
+    color: var(--text-1); margin-bottom: 3px;
+  }
+  .section-desc {
+    font-size: 12px; color: var(--text-3); margin-bottom: 16px; max-width: 560px;
+  }
+  .divider { height: 1px; background: var(--border); margin-bottom: 16px; }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-md); padding: var(--space-16);
+    box-shadow: var(--shadow-flat);
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-10); }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-10); }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-8); }
+
+  /* ─── COLORS ─── */
+  .color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--space-8); }
+  .color-tile { border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); }
+  .color-swatch { height: 52px; }
+  .color-info { padding: var(--space-8) var(--space-10); background: var(--surface); }
+  .color-name { font-size: 11px; font-weight: 600; color: var(--text-1); margin-bottom: 1px; }
+  .color-hex { font-size: 10px; color: var(--text-3); font-family: var(--font-mono); }
+  .color-role { font-size: 10px; color: var(--text-3); margin-top: 2px; line-height: 1.35; }
+
+  .palette-section { margin-bottom: 16px; }
+  .palette-label { font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+
+  /* ─── TYPOGRAPHY SAMPLES ─── */
+  .type-sample {
+    padding: var(--space-12);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); margin-bottom: var(--space-6);
+  }
+  .type-meta { font-size: 10px; color: var(--text-3); font-family: var(--font-mono); margin-bottom: 4px; }
+
+  /* Dashboard type scale (compact) */
+  .t-page-title { font-size: 20px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.2; }
+  .t-section-title { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; }
+  .t-card-title { font-size: 13px; font-weight: 700; line-height: 1.3; }
+  .t-body { font-size: 13px; line-height: 1.5; }
+  .t-body-sm { font-size: 12px; color: var(--text-2); line-height: 1.45; }
+  .t-caption { font-size: 11px; color: var(--text-3); line-height: 1.4; }
+  .t-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+  .t-data { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .t-mono { font-family: var(--font-mono); font-size: 11px; }
+
+  .font-stack-box {
+    padding: var(--space-10) var(--space-12);
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-family: var(--font-mono);
+    font-size: 11px; color: var(--text-2); line-height: 1.6;
+  }
+
+  /* ─── SPACING ─── */
+  .spacing-row { display: flex; align-items: center; gap: var(--space-10); margin-bottom: var(--space-6); }
+  .spacing-bar-wrap { flex: 1; }
+  .spacing-bar { background: var(--accent-light); border: 1.5px solid var(--accent); border-radius: 3px; height: 18px; }
+  .spacing-label { font-size: 11px; font-weight: 600; color: var(--text-1); width: 60px; flex-shrink: 0; }
+  .spacing-value { font-size: 11px; color: var(--text-3); font-family: var(--font-mono); width: 50px; text-align: right; flex-shrink: 0; }
+
+  /* ─── RADIUS ─── */
+  .radius-grid { display: flex; gap: var(--space-12); flex-wrap: wrap; }
+  .radius-demo { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .radius-box { width: 48px; height: 48px; background: var(--accent-light); border: 1.5px solid var(--accent); }
+  .radius-name { font-size: 10px; font-weight: 600; color: var(--text-2); }
+  .radius-val { font-size: 10px; color: var(--text-3); font-family: var(--font-mono); }
+
+  /* ─── COMPONENTS ─── */
+  .component-row { display: flex; align-items: center; gap: var(--space-8); flex-wrap: wrap; margin-bottom: var(--space-6); }
+
+  /* Buttons – compact */
+  .btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-weight: 600; font-size: 12px; border: none; cursor: pointer;
+    transition: all 0.15s; border-radius: var(--radius-sm);
+    padding: 5px 12px; font-family: inherit; line-height: 1.4;
+  }
+  .btn-primary { background: var(--accent); color: #1a1000; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-secondary { background: rgba(60,60,67,0.07); color: var(--text-1); }
+  .btn-secondary:hover { background: rgba(60,60,67,0.11); }
+  .btn-danger { background: rgba(255,59,48,0.1); color: var(--danger); }
+  .btn-success { background: rgba(52,199,89,0.1); color: #1a6b30; }
+  .btn-navy { background: var(--navy); color: #fff; }
+  .btn-ghost { background: transparent; color: var(--text-2); padding: 5px 8px; }
+  .btn-ghost:hover { background: rgba(60,60,67,0.06); color: var(--text-1); }
+  .btn-xs { padding: 3px 8px; font-size: 11px; }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
+
+  /* Inputs – compact */
+  .input-demo {
+    padding: 5px 10px; border: 1.5px solid transparent;
+    background: rgba(118,118,128,0.1); border-radius: var(--radius-sm);
+    font-family: inherit; font-size: 12px; color: var(--text-1);
+    outline: none; min-width: 160px; transition: all 0.15s;
+  }
+  .input-demo:focus { border-color: var(--accent); background: var(--accent-light); }
+  .input-demo.input-error { border-color: var(--danger); background: rgba(255,59,48,0.05); }
+
+  /* Badges – compact */
+  .badge {
+    display: inline-flex; align-items: center; font-size: 10px;
+    font-weight: 600; padding: 2px 7px; border-radius: var(--radius-pill);
+    line-height: 1.4;
+  }
+  .badge-gold { background: #FFCC33; color: #3d2600; }
+  .badge-success { background: rgba(52,199,89,0.12); color: #1a6b30; }
+  .badge-danger { background: rgba(255,59,48,0.1); color: #c0000e; }
+  .badge-info { background: rgba(27,47,78,0.1); color: var(--navy); }
+  .badge-neutral { background: rgba(0,0,0,0.05); color: var(--text-2); }
+
+  /* Status indicators */
+  .status { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; }
+  .status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .status-success { color: #1a6b30; } .status-success::before { background: var(--success); }
+  .status-danger { color: #c0000e; } .status-danger::before { background: var(--danger); }
+  .status-warning { color: #7a5500; } .status-warning::before { background: var(--accent); }
+  .status-neutral { color: var(--text-3); } .status-neutral::before { background: var(--text-3); }
+
+  /* Progress – compact */
+  .progress-wrap { height: 4px; background: rgba(118,118,128,0.12); border-radius: var(--radius-pill); overflow: hidden; flex: 1; }
+  .progress-bar { height: 100%; background: var(--accent); border-radius: var(--radius-pill); }
+
+  /* Data Table */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .data-table th {
+    padding: 6px 10px; text-align: left; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3);
+    border-bottom: 1px solid var(--border-strong); background: var(--surface-2);
+    position: sticky; top: 0;
+  }
+  .data-table td {
+    padding: 6px 10px; border-bottom: 1px solid var(--border);
+    vertical-align: middle; line-height: 1.4;
+  }
+  .data-table tr:hover td { background: rgba(255,201,56,0.04); }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table td:first-child { font-weight: 600; color: var(--text-1); }
+
+  /* Shadows */
+  .shadow-demo {
+    width: 64px; height: 44px; background: white;
+    border-radius: var(--radius-sm); display: flex; align-items: center;
+    justify-content: center; font-size: 9px; color: var(--text-3);
+  }
+  .shadow-1 { box-shadow: var(--shadow-flat); }
+  .shadow-2 { box-shadow: var(--shadow-card); }
+  .shadow-3 { box-shadow: var(--shadow-hover); }
+  .shadow-4 { box-shadow: var(--shadow-modal); }
+
+  /* KPI Card demo */
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-md); padding: var(--space-12);
+    box-shadow: var(--shadow-flat);
+  }
+  .kpi-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); margin-bottom: 2px; }
+  .kpi-value { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--text-1); }
+  .kpi-delta { font-size: 11px; font-weight: 500; margin-top: 2px; }
+  .kpi-delta.up { color: #1a6b30; }
+  .kpi-delta.down { color: #c0000e; }
+
+  /* Code */
+  code {
+    font-family: var(--font-mono); font-size: 11px;
+    background: rgba(0,0,0,0.04); padding: 1px 5px;
+    border-radius: 3px; color: var(--navy);
+  }
+  pre {
+    background: #1b2f4e; color: #e2e8f0;
+    padding: var(--space-12) var(--space-16);
+    border-radius: var(--radius-sm); font-family: var(--font-mono);
+    font-size: 11px; line-height: 1.7; overflow-x: auto;
+    margin-bottom: var(--space-8);
+  }
+  pre .c { color: #64748b; }
+  pre .k { color: #ffc938; }
+  pre .v { color: #86efac; }
+  pre .s { color: #fb923c; }
+
+  /* Do / Don't */
+  .rule-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-10); }
+  .rule-box { padding: var(--space-12) var(--space-16); border-radius: var(--radius-sm); }
+  .rule-do { background: rgba(52,199,89,0.06); border: 1px solid rgba(52,199,89,0.2); }
+  .rule-dont { background: rgba(255,59,48,0.05); border: 1px solid rgba(255,59,48,0.15); }
+  .rule-header { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+  .rule-do .rule-header { color: #1a6b30; }
+  .rule-dont .rule-header { color: #c0000e; }
+  .rule-icon { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; }
+  .rule-do .rule-icon { background: var(--success); color: white; }
+  .rule-dont .rule-icon { background: var(--danger); color: white; }
+  .rule-list { list-style: none; }
+  .rule-list li { font-size: 11px; color: var(--text-2); padding: 3px 0; border-bottom: 1px solid rgba(0,0,0,0.04); display: flex; align-items: flex-start; gap: 6px; line-height: 1.4; }
+  .rule-list li:last-child { border-bottom: none; }
+  .rule-list li::before { content: ''; margin-top: 5px; width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; }
+  .rule-do .rule-list li::before { background: var(--success); }
+  .rule-dont .rule-list li::before { background: var(--danger); }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .compare-table th { text-align: left; padding: 6px 10px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); border-bottom: 1px solid var(--border-strong); }
+  .compare-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 12px; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-val { font-family: var(--font-mono); font-size: 11px; color: var(--navy); }
+  .compare-old { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); text-decoration: line-through; }
+
+  /* Viz palette */
+  .viz-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: var(--space-4); }
+  .viz-swatch { height: 36px; border-radius: var(--radius-xs); display: flex; align-items: flex-end; padding: 3px; }
+  .viz-swatch span { font-size: 9px; font-weight: 600; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+
+  /* Footer */
+  footer {
+    background: var(--navy); color: rgba(255,255,255,0.65);
+    text-align: center; padding: 20px var(--space-24);
+    font-size: 11px; margin-top: 24px;
+  }
+  footer strong { color: white; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    nav { padding: 0 var(--space-12); gap: var(--space-10); overflow-x: auto; }
+    .page { padding: 0 var(--space-12) 40px; }
+    .hero { padding: 24px var(--space-12) 20px; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .rule-grid { grid-template-columns: 1fr; }
+    .viz-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+</style>
+<style>
+  body { display: flex; flex-direction: column; background: var(--bg); }
+  .page { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; gap: 24px; }
+  @media print {
+    @page { margin: 1.5cm; }
+    body, .page { background: white; margin: 0; padding: 0; display: block; max-width: 100%; width: 100%; gap: 1rem; }
+    .card { padding: 16px !important; margin-bottom: 16px !important; box-shadow: none !important; border: 1px solid #ddd !important; page-break-inside: avoid; }
+    .kpi-card { padding: 12px !important; border: 1px solid #ddd !important; box-shadow: none !important; }
+    .hero { text-align: left !important; margin-bottom: 20px; border-bottom: 1px solid #ddd !important; padding-bottom: 12px !important; }
+    .grid-4, .grid-3 { display: flex !important; flex-wrap: wrap; gap: 12px; }
+    .grid-4 > div, .grid-3 > div { flex: 1 1 20%; min-width: 150px; }
+    .calc-table input { min-width: 0 !important; width: 100% !important; }
+    .calc-table th, .calc-table td { padding: 6px !important; font-size: 10px; }
+    .input-demo { border: none !important; background: transparent !important; padding: 0 !important; margin: 0 !important; height: auto !important; color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; appearance: none; }
+    select.input-demo { display: inline-block; }
+    .no-print { display: none !important; }
+  }
+  section { margin-bottom: 0 !important; }
+  .card { padding: 1.5vh 16px !important; }
+  .input-group { margin-bottom: 1vh; }
+  .input-group label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 10px; text-transform: uppercase; color: var(--text-3); }
+  .input-demo { width: 100%; box-sizing: border-box; }
+  .calc-table input[type="number"] { width: 60px; text-align: right; }
+  .calc-table input.focus-input { width: 100%; min-width: 200px; }
+  .read-only { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.08); color: var(--text-2); pointer-events: none; }
+  .total-row td { font-weight: 700; background: var(--surface-2); border-top: 2px solid var(--border-strong); }
+  .palette-label { margin-bottom: 1vh !important; }
+  .kpi-card { padding: 1.2vh 12px !important; }
+  .hero { padding: 2vh var(--space-24) 1vh !important; }
+  .data-table th, .data-table td { padding: 0.8vh 8px !important; }
+</style>
+</head>
+<body>
+
+<div class="hero" style="position: relative; border-bottom: 1px solid var(--border); margin-bottom: 12px; padding-bottom: 24px !important; text-align: center;">
+  <h1 style="margin:0; margin-bottom: 12px;">Performance <em>Appraisal Modeler</em></h1>
+  <div class="no-print">
+    <button class="btn btn-navy" onclick="window.print()">Export Appraisal Report</button>
+  </div>
+  <button class="btn btn-ghost no-print" onclick="resetData()" style="position: absolute; right: 24px; bottom: 24px; font-size: 11px; color: var(--text-3); text-decoration: underline; padding: 4px;" title="Reset configuration to defaults">Clear & Start Over</button>
+</div>
+
+<div class="page" id="app">
+
+  <!-- Employee Details Selection -->
+  <section>
+    <div class="card">
+      <div class="palette-label" style="margin-bottom:12px;">Associate Profile & Budget Controls</div>
+      <div class="grid-4">
+        <div class="input-group">
+          <label>Employee Name</label>
+          <input type="text" class="input-demo" id="empName" placeholder="Enter Name..." value="Name 1" oninput="saveData()">
+        </div>
+        <div class="input-group">
+          <label>Role / Level</label>
+          <select class="input-demo" id="empLevel" onchange="handleLevelChange()">
+            <option value="L1">L1 (Junior Execs)</option>
+            <option value="L2">L2 (Senior Execs)</option>
+            <option value="L3">L3 (Managers)</option>
+            <option value="L4">L4 (Senior Managers)</option>
+            <option value="Custom">Custom</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Current Monthly Salary (₹)</label>
+          <input type="number" class="input-demo" id="currSalary" value="50000" oninput="handlePctChange()">
+        </div>
+        <div class="input-group">
+          <label>Appraisal Budget %</label>
+          <input type="number" step="0.1" class="input-demo" id="budgetPct" value="30" oninput="handlePctChange()">
+        </div>
+      </div>
+      <div class="grid-4" style="margin-top: 8px;">
+        <div class="input-group">
+          <label>Monthly Appraisal Budget (₹)</label>
+          <input type="number" class="input-demo" id="monthBudget" value="15000" oninput="handleBudgetChange()">
+        </div>
+        <div class="input-group">
+          <label>Current CTC (₹ / annum)</label>
+          <input type="text" class="input-demo read-only" id="currCTC" readonly>
+        </div>
+        <div class="input-group">
+          <label>Ann. Appraisal Budget (₹)</label>
+          <input type="text" class="input-demo read-only" id="annBudget" readonly>
+        </div>
+        <div class="input-group">
+          <label>Monthly Pot. Appraised (₹)</label>
+          <input type="text" class="input-demo read-only" id="monthPot" readonly>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Result Areas Table -->
+  <section>
+    <div class="card">
+      <div class="palette-label" style="margin-bottom:12px;">Performance Evaluation Matrix</div>
+      <div style="overflow-x: auto;">
+        <table class="data-table calc-table">
+          <thead>
+            <tr>
+              <th>Area of Focus</th>
+              <th style="text-align: right;">Weightage (%)</th>
+              <th style="text-align: right;">Goal</th>
+              <th style="text-align: right;">Achieved</th>
+              <th style="text-align: right;">% Achievement</th>
+              <th style="text-align: right;">Salary Hike (₹)</th>
+              <th class="no-print" style="width: 30px;"></th>
+            </tr>
+          </thead>
+          <tbody id="kraBody">
+            <!-- Rows injected by JS -->
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="5" id="weightWarning" style="color: var(--danger); font-size: 11px;"></td>
+              <td style="text-align: right; color: var(--success); font-size: 14px;" id="totHike">₹ 0</td>
+              <td class="no-print"></td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="no-print" style="margin-top: 12px; text-align: left;">
+          <button class="btn btn-secondary btn-sm" onclick="addNewRow()">+ Add Performance Metric</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final Results Cards -->
+  <section>
+    <div class="palette-label" style="margin-bottom:12px;">Final Compensation Projections</div>
+    <div class="grid-3">
+      <div class="kpi-card">
+        <div class="kpi-label">Salary Hike Achieved</div>
+        <div class="kpi-value" id="kpiHikeVal" style="color: var(--success);">₹ 0</div>
+        <div class="kpi-delta up" id="kpiHikePct">0% Hike</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Monthly Appraised Salary</div>
+        <div class="kpi-value" id="kpiMonthSal">₹ 0</div>
+        <div class="kpi-delta neutral">INR / month</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Annual Appraised Salary</div>
+        <div class="kpi-value" id="kpiAnnSal" style="color: var(--viz-5);">₹ 0</div>
+        <div class="kpi-delta neutral">INR / annum</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  const levelsData = {
+    L1: [60, 10, 10, 20],
+    L2: [55, 15, 10, 20],
+    L3: [65, 15, 10, 10],
+    L4: [65, 15, 10, 10],
+    Custom: [0, 0, 0, 0]
+  };
+  
+  const parameters = [
+    "KRA / Results Score",
+    "Culture & Behaviour",
+    "HR & L&D Participation",
+    "Compliance Score"
+  ];
+  
+  // To match the exact L1/L2 mapping, reordering to match excel:
+  // Excel: KRA(0), Compliance(3), HR(2), Culture(1) ... wait, excel had different order.
+  // The screenshot had "Results", "Behaviour", "HR", "Compliance". We will follow the screenshot columns for weightages.
+  // indices: 0: Results, 1: Behaviour, 2: HR, 3: Compliance.
+
+  let currentScores = [0, 0, 0, 0]; // Default Achieved
+  let currentRowIndex = 0;
+  
+  function initTable(rowCount = 4) {
+    const tbody = document.getElementById('kraBody');
+    tbody.innerHTML = "";
+    currentRowIndex = 0;
+    for(let i=0; i<rowCount; i++) {
+        appendRow(parameters[i] || "", 0, currentScores[i] || 0);
+    }
+  }
+
+  function appendRow(focusVal = "", weightVal = 0, achievedVal = 0) {
+    const tbody = document.getElementById('kraBody');
+    const i = currentRowIndex++;
+    const tr = document.createElement('tr');
+    tr.className = "kra-row";
+    tr.innerHTML = `
+        <td><input type="text" class="input-demo focus-input" style="font-weight: 600; padding: 2px 5px;" value="${focusVal}" oninput="saveData()"></td>
+        <td style="text-align: right;"><input type="number" class="input-demo weight-input" data-index="${i}" value="${weightVal}" oninput="calculateHikes(); checkCustom();"></td>
+        <td style="text-align: right;"><input type="number" class="input-demo read-only" value="10" readonly></td>
+        <td style="text-align: right;"><input type="number" step="0.1" class="input-demo achieved-input" data-index="${i}" value="${achievedVal}" oninput="calculateHikes()"></td>
+        <td style="text-align: right; font-family: var(--font-mono);" class="pctArch_cell">0%</td>
+        <td style="text-align: right; font-weight: 600;" class="hike_cell">₹ 0</td>
+        <td style="text-align: center; width: 30px; padding: 2px !important;" class="no-print"><button class="btn btn-ghost btn-xs" onclick="removeRow(this)" tabindex="-1" style="color: var(--danger); font-size: 14px; padding: 0 4px;" title="Remove Row">×</button></td>
+    `;
+    tbody.appendChild(tr);
+    calculateHikes();
+  }
+
+  function removeRow(btn) {
+    const tr = btn.closest('tr');
+    tr.remove();
+    checkCustom();
+    calculateHikes();
+  }
+
+  function addNewRow() {
+    appendRow("", 0, 0);
+    checkCustom();
+  }
+
+  function handleLevelChange() {
+    const level = document.getElementById('empLevel').value;
+    const weights = levelsData[level] || [];
+    const weightInputs = document.querySelectorAll('.weight-input');
+    weightInputs.forEach((inp, i) => {
+      inp.value = weights[i] !== undefined ? weights[i] : 0;
+    });
+    calculateHikes();
+  }
+
+  function checkCustom() {
+    document.getElementById('empLevel').value = 'Custom';
+  }
+
+  function handlePctChange() {
+    const sal = parseFloat(document.getElementById('currSalary').value) || 0;
+    const pct = parseFloat(document.getElementById('budgetPct').value) || 0;
+    const mbudget = sal * (pct / 100.0);
+    document.getElementById('monthBudget').value = Math.round(mbudget);
+    calculateBasics();
+  }
+
+  function handleBudgetChange() {
+    const sal = parseFloat(document.getElementById('currSalary').value) || 0;
+    const mbudget = parseFloat(document.getElementById('monthBudget').value) || 0;
+    if (sal > 0) {
+      const pct = (mbudget / sal) * 100.0;
+      document.getElementById('budgetPct').value = pct.toFixed(2);
+    }
+    calculateBasics();
+  }
+
+  function calculateBasics() {
+    const sal = parseFloat(document.getElementById('currSalary').value) || 0;
+    const mbudget = parseFloat(document.getElementById('monthBudget').value) || 0;
+    
+    document.getElementById('currCTC').value = formatCurrency(sal * 12);
+    document.getElementById('annBudget').value = formatCurrency(mbudget * 12);
+    document.getElementById('monthPot').value = formatCurrency(sal + mbudget);
+    
+    calculateHikes();
+  }
+
+  function formatCurrency(val) {
+    // Simple indian currency format approximation or just generic grouping
+    return "₹ " + val.toLocaleString('en-IN', { maximumFractionDigits: 0, minimumFractionDigits: 0 });
+  }
+
+  function calculateHikes() {
+    const mbudget = parseFloat(document.getElementById('monthBudget').value) || 0;
+    const sal = parseFloat(document.getElementById('currSalary').value) || 0;
+    
+    let totWeight = 0;
+    let totHike = 0;
+    
+    const wInputs = document.querySelectorAll('.weight-input');
+    const aInputs = document.querySelectorAll('.achieved-input');
+    const pctCells = document.querySelectorAll('.pctArch_cell');
+    const hikeCells = document.querySelectorAll('.hike_cell');
+    
+    for(let i=0; i<wInputs.length; i++) {
+      const w = parseFloat(wInputs[i].value) || 0;
+      const a = parseFloat(aInputs[i].value) || 0;
+      
+      totWeight += w;
+      
+      const percAchieved = a / 10.0;
+      pctCells[i].innerText = (percAchieved * 100).toFixed(1) + "%";
+      
+      const hike = percAchieved * (w / 100.0) * mbudget;
+      totHike += hike;
+      hikeCells[i].innerText = formatCurrency(hike);
+    }
+    const wTxt = document.getElementById('weightWarning');
+    const diff = 100 - totWeight;
+    if (Math.abs(diff) > 0.01) {
+      wTxt.style.color = "var(--danger)";
+      if (diff > 0) {
+        wTxt.innerText = `⚠️ ${diff.toFixed(1)}% weightage is not allocated. Please adjust to reach 100%.`;
+      } else {
+        wTxt.innerText = `⚠️ Weightage exceeds 100% by ${Math.abs(diff).toFixed(1)}%. Please adjust to reach 100%.`;
+      }
+    } else {
+      wTxt.innerText = "";
+    }
+    document.getElementById('totHike').innerText = formatCurrency(totHike);
+    
+    // update KPIs
+    document.getElementById('kpiHikeVal').innerText = formatCurrency(totHike);
+    const hikePct = sal > 0 ? ((totHike / sal) * 100).toFixed(2) : 0;
+    document.getElementById('kpiHikePct').innerText = `↑ ${hikePct}% Hike`;
+    
+    const newMonthSal = sal + totHike;
+    document.getElementById('kpiMonthSal').innerText = formatCurrency(newMonthSal);
+    document.getElementById('kpiAnnSal').innerText = formatCurrency(newMonthSal * 12);
+    
+    saveData();
+  }
+
+  function saveData() {
+    try {
+      const data = {
+        empName: document.getElementById('empName').value,
+        empLevel: document.getElementById('empLevel').value,
+        currSalary: document.getElementById('currSalary').value,
+        budgetPct: document.getElementById('budgetPct').value,
+        monthBudget: document.getElementById('monthBudget').value,
+        focusAreas: Array.from(document.querySelectorAll('.focus-input')).map(el => el.value),
+        weights: Array.from(document.querySelectorAll('.weight-input')).map(el => el.value),
+        achieved: Array.from(document.querySelectorAll('.achieved-input')).map(el => el.value)
+      };
+      localStorage.setItem('appraisalData', JSON.stringify(data));
+    } catch(e) {
+      console.warn("Local storage is disabled or unsupported in this context.", e);
+    }
+  }
+
+  function loadData() {
+    const saved = localStorage.getItem('appraisalData');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.empName !== undefined) document.getElementById('empName').value = data.empName;
+        if (data.empLevel !== undefined) document.getElementById('empLevel').value = data.empLevel;
+        if (data.currSalary !== undefined) document.getElementById('currSalary').value = data.currSalary;
+        if (data.budgetPct !== undefined) document.getElementById('budgetPct').value = data.budgetPct;
+        if (data.monthBudget !== undefined) document.getElementById('monthBudget').value = data.monthBudget;
+        
+        if (data.focusAreas && data.focusAreas.length > 0) {
+          const tbody = document.getElementById('kraBody');
+          tbody.innerHTML = "";
+          currentRowIndex = 0;
+          for(let i=0; i<data.focusAreas.length; i++) {
+            appendRow(data.focusAreas[i], data.weights[i] || 0, data.achieved[i] || 0);
+          }
+        }
+        return true;
+      } catch (e) { console.error('Error loading data', e); }
+    }
+    return false;
+  }
+
+  function resetData() {
+    if(confirm("Are you sure you want to reset all data to default values?")) {
+      localStorage.removeItem('appraisalData');
+      location.reload();
+    }
+  }
+
+  // Initialize
+  initTable();
+  if (!loadData()) {
+    document.getElementById('empLevel').value = 'L1';
+    handleLevelChange();
+  } else {
+    // Force standard level weightages if not custom to overcome legacy cached values
+    if (document.getElementById('empLevel').value !== 'Custom') {
+      handleLevelChange();
+    }
+  }
+  calculateBasics();
+
+</script>
+
+</body>
+</html>
