@@ -11,7 +11,7 @@ A beautifully designed, client-side single-page application built to streamline 
 - **Real-Time Financial Projections:** Instantly calculates monthly/annual appraisal budgets, percentage achievements, and final forecasted salaries as you type.
 - **Automated HR Email Draft:** As you input data, the app dynamically generates a completely formatted HR email draft containing all necessary details (including updated CTC and effective dates).
 - **1-Click Clipboard Copy:** Strip HTML formatting and copy the generated plain-text HR email straight to your clipboard for instant pasting into your email client.
-- **Automated PDF Export:** Uses `html2canvas` and `jsPDF` to seamlessly and perfectly capture the evaluation matrix into a clean, minimalist A4 PDF report—downloaded instantly to your machine with a strict `.pdf` extension.
+- **Browser Print to PDF:** Uses the browser's native print dialog for clean, reliable PDF export with print-optimized spacing, visibility, and layout.
 - **Automated Data Persistence:** Automatically saves all configurations, inputs, and edits to the browser's native `localStorage` on every keystroke. Your data survives accidental tab closures and browser restarts.
 
 ## 💻 Installation & Usage
@@ -29,9 +29,9 @@ Because the primary logic operates completely local to the browser window, getti
 
 To execute a finalized appraisal and send records:
 1. Ensure all calculations are settled and dates are filled in.
-2. Click the **⬇ Export Appraisal PDF** button at the top of the dashboard. The system will automatically take a high-fidelity snapshot of the matrix and download `Appraisal_[Name].pdf` securely to your computer.
+2. Click **Print / Save as PDF** at the top of the dashboard, or press `Command + P`, to open the browser's native print dialog.
 3. Scroll down to the **HR Email Draft** section and click **Copy to Clipboard**. 
-4. Paste the text into your email client, attach the downloaded PDF, and send it to HR.
+4. Save the print output as a PDF from the browser dialog, then paste the email text into your email client, attach the PDF, and send it to HR.
 
 ## 🧹 Resetting the Dashboard
 
@@ -40,5 +40,4 @@ If you need to wipe out the stored local memory cache and begin a fresh evaluati
 ## 🛠️ Architecture & Dependencies
 - **HTML5 & CSS3:** Semantic structure, heavy utilization of Flexbox systems, and responsive layouts.
 - **ES6 JavaScript:** Modular, client-side mathematics handler managing DOM state integration and localized `localStorage` serialization.
-- **html2canvas (v1.4.1):** Used for rendering a high-fidelity snapshot of the DOM for reports.
-- **jsPDF (v2.5.1):** Used to package the rendered snapshot into a downloadable A4 PDF document.
+- **Browser Print CSS:** Uses `@media print` rules to produce a clean print/PDF layout directly from the browser.

@@ -7,8 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -159,6 +157,18 @@
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-10); }
   .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-10); }
   .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-8); }
+  .profile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .field-card {
+    display: flex; flex-direction: column; justify-content: center; gap: var(--space-4);
+    min-height: 82px; padding: 12px 14px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  .field-card:focus-within {
+    background: var(--surface);
+    border-color: rgba(255, 201, 56, 0.7);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
 
   /* ─── COLORS ─── */
   .color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--space-8); }
@@ -229,6 +239,7 @@
   .btn-danger { background: rgba(255,59,48,0.1); color: var(--danger); }
   .btn-success { background: rgba(52,199,89,0.1); color: #1a6b30; }
   .btn-navy { background: var(--navy); color: #fff; }
+  .btn-navy:hover { background: #253d66; }
   .btn-ghost { background: transparent; color: var(--text-2); padding: 5px 8px; }
   .btn-ghost:hover { background: rgba(60,60,67,0.06); color: var(--text-1); }
   .btn-xs { padding: 3px 8px; font-size: 11px; }
@@ -243,6 +254,18 @@
   }
   .input-demo:focus { border-color: var(--accent); background: var(--accent-light); }
   .input-demo.input-error { border-color: var(--danger); background: rgba(255,59,48,0.05); }
+  .field-card .input-demo,
+  .field-card .read-only {
+    min-width: 0; width: 100%;
+    padding: 0; margin: 0;
+    border: none; border-radius: 0;
+    background: transparent;
+    font-size: 15px; font-weight: 600; line-height: 1.35;
+    color: var(--text-1);
+    box-shadow: none;
+  }
+  .field-card select.input-demo { padding-right: 18px; }
+  .field-card .input-demo:focus { border-color: transparent; background: transparent; }
 
   /* Badges – compact */
   .badge {
@@ -274,15 +297,37 @@
     padding: 6px 10px; text-align: left; font-size: 10px; font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3);
     border-bottom: 1px solid var(--border-strong); background: var(--surface-2);
-    position: sticky; top: 0;
+    position: sticky; top: 0; vertical-align: middle; white-space: nowrap;
   }
   .data-table td {
     padding: 6px 10px; border-bottom: 1px solid var(--border);
-    vertical-align: middle; line-height: 1.4;
+    vertical-align: middle; line-height: 1.45;
   }
   .data-table tr:hover td { background: rgba(255,201,56,0.04); }
   .data-table tr:last-child td { border-bottom: none; }
   .data-table td:first-child { font-weight: 600; color: var(--text-1); }
+  .calc-table { table-layout: fixed; }
+  .calc-table .col-focus { width: 32%; }
+  .calc-table .col-weight,
+  .calc-table .col-goal,
+  .calc-table .col-achieved { width: 11%; }
+  .calc-table .col-percent { width: 14%; }
+  .calc-table .col-hike { width: 16%; }
+  .calc-table .col-actions { width: 30px; }
+  .calc-table th:first-child,
+  .calc-table td:first-child { text-align: left; }
+  .calc-table th:nth-child(n+2):nth-child(-n+6),
+  .calc-table td:nth-child(n+2):nth-child(-n+6) { text-align: right; }
+  .calc-table td:nth-child(7) { text-align: center; }
+  .calc-table .input-demo { min-width: 0; font-variant-numeric: tabular-nums; }
+  .calc-table .focus-input { padding: 5px 6px; font-weight: 600; }
+  .calc-table .weight-input,
+  .calc-table .goal-input,
+  .calc-table .achieved-input { text-align: right; }
+  .calc-table .pctArch_cell { font-family: var(--font-mono); }
+  .calc-table .hike_cell { font-weight: 600; }
+  .calc-table .action-cell { width: 30px; padding: 2px 4px !important; text-align: center !important; }
+  .remove-row-btn { color: var(--danger); font-size: 14px; padding: 0 4px !important; }
 
   /* Shadows */
   .shadow-demo {
@@ -298,12 +343,16 @@
   /* KPI Card demo */
   .kpi-card {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-md); padding: var(--space-12);
+    border-radius: var(--radius-md); padding: 16px 18px;
     box-shadow: var(--shadow-flat);
+    min-height: 124px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    gap: var(--space-8);
   }
-  .kpi-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); margin-bottom: 2px; }
-  .kpi-value { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--text-1); }
-  .kpi-delta { font-size: 11px; font-weight: 500; margin-top: 2px; }
+  .kpi-grid { align-items: stretch; gap: 12px; }
+  .kpi-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); margin-bottom: 0; line-height: 1.3; }
+  .kpi-value { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--text-1); line-height: 1.05; }
+  .kpi-delta { font-size: 11px; font-weight: 500; margin-top: 0; line-height: 1.4; }
   .kpi-delta.up { color: #1a6b30; }
   .kpi-delta.down { color: #c0000e; }
 
@@ -370,40 +419,205 @@
     .page { padding: 0 var(--space-12) 40px; }
     .hero { padding: 24px var(--space-12) 20px; }
     .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .profile-grid { grid-template-columns: 1fr; }
     .rule-grid { grid-template-columns: 1fr; }
     .viz-grid { grid-template-columns: repeat(4, 1fr); }
   }
 </style>
 <style>
   body { display: flex; flex-direction: column; background: var(--bg); }
-  .page { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; gap: 24px; }
+  .page { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 1080px; margin: 0 auto; padding: 20px 24px 56px; gap: 14px; }
   @media print {
-    @page { margin: 1.5cm; }
-    body, .page { background: white; margin: 0; padding: 0; display: block; max-width: 100%; width: 100%; gap: 1rem; }
-    .card { padding: 16px !important; margin-bottom: 16px !important; box-shadow: none !important; border: 1px solid #ddd !important; page-break-inside: avoid; }
-    .kpi-card { padding: 12px !important; border: 1px solid #ddd !important; box-shadow: none !important; }
-    .hero { text-align: left !important; margin-bottom: 20px; border-bottom: 1px solid #ddd !important; padding-bottom: 12px !important; }
-    .grid-4, .grid-3 { display: flex !important; flex-wrap: wrap; gap: 12px; }
-    .grid-4 > div, .grid-3 > div { flex: 1 1 20%; min-width: 150px; }
-    .calc-table input { min-width: 0 !important; width: 100% !important; }
-    .calc-table th, .calc-table td { padding: 6px !important; font-size: 10px; }
-    .input-demo { border: none !important; background: transparent !important; padding: 0 !important; margin: 0 !important; height: auto !important; color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; appearance: none; }
-    select.input-demo { display: inline-block; }
-    .no-print { display: none !important; }
+    @page { size: A4 portrait; margin: 10mm 12mm; }
+    html, body {
+      background: #fff !important;
+      font-size: 10.5pt;
+      line-height: 1.3;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body, #captureArea, .page {
+      display: block !important;
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: #fff !important;
+      gap: 0 !important;
+    }
+    nav, footer, .no-print, .email-section {
+      display: none !important;
+    }
+    .hero {
+      max-width: none !important;
+      margin: 0 0 6mm !important;
+      padding: 0 0 5mm !important;
+      text-align: left !important;
+      border-bottom: 1px solid #d7d7d7 !important;
+      break-after: avoid-page;
+      page-break-after: avoid;
+    }
+    .hero h1 {
+      margin-bottom: 0 !important;
+      font-size: 22pt !important;
+      line-height: 1.15 !important;
+    }
+    section {
+      margin: 0 0 5mm !important;
+      break-inside: auto;
+      page-break-inside: auto;
+    }
+    .card, .kpi-card {
+      background: #fff !important;
+      border: 1px solid #d7d7d7 !important;
+      border-radius: 4mm !important;
+      box-shadow: none !important;
+      break-inside: avoid-page;
+      page-break-inside: avoid;
+    }
+    .card {
+      padding: 4.5mm 4.75mm !important;
+    }
+    .kpi-card {
+      padding: 4mm 4.5mm !important;
+    }
+    .palette-label {
+      margin-bottom: 2.5mm !important;
+      color: #555 !important;
+      line-height: 1.2 !important;
+    }
+    .grid-2, .grid-3, .grid-4 {
+      gap: 3.25mm !important;
+    }
+    .profile-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 3.25mm !important;
+    }
+    .grid-2, .grid-4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+    .input-group {
+      margin-bottom: 0 !important;
+    }
+    .field-card {
+      min-height: 0 !important;
+      padding: 3.4mm 3.6mm !important;
+      background: #fff !important;
+      border: 1px solid #dcdcdc !important;
+      border-radius: 3mm !important;
+      box-shadow: none !important;
+    }
+    .input-group label,
+    .kpi-label,
+    .data-table th {
+      color: #666 !important;
+    }
+    .input-group label {
+      margin-bottom: 1.4mm !important;
+      line-height: 1.15 !important;
+    }
+    .input-demo,
+    .read-only {
+      min-width: 0 !important;
+      width: 100% !important;
+      height: auto !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      color: #111 !important;
+      box-shadow: none !important;
+      appearance: none;
+    }
+    .field-card .input-demo,
+    .field-card .read-only {
+      font-size: 12pt !important;
+      font-weight: 600 !important;
+      line-height: 1.25 !important;
+    }
+    .input-demo::-webkit-calendar-picker-indicator,
+    .input-demo::-webkit-clear-button,
+    .input-demo::-webkit-inner-spin-button {
+      display: none !important;
+      opacity: 0 !important;
+      -webkit-appearance: none !important;
+    }
+    select.input-demo {
+      background-image: none !important;
+    }
+    .data-table {
+      table-layout: auto;
+      font-size: 10px !important;
+    }
+    .data-table th,
+    .data-table td {
+      padding: 2.2mm 2.4mm !important;
+      border-color: #dcdcdc !important;
+      vertical-align: top !important;
+      background: transparent !important;
+      white-space: normal !important;
+      overflow-wrap: anywhere;
+    }
+    .data-table th {
+      position: static !important;
+      font-size: 9px !important;
+      background: #f5f5f5 !important;
+      text-align: left !important;
+    }
+    .data-table td:first-child {
+      font-weight: 600;
+    }
+    .calc-table th:first-child,
+    .calc-table td:first-child {
+      width: 30%;
+    }
+    .calc-table th:nth-child(n+2):nth-child(-n+6),
+    .calc-table td:nth-child(n+2):nth-child(-n+6) {
+      text-align: right !important;
+    }
+    .calc-table input,
+    .calc-table input.focus-input {
+      min-width: 0 !important;
+      width: 100% !important;
+    }
+    .calc-table input[type="number"] { text-align: right !important; }
+    .calc-table input.focus-input { text-align: left !important; }
+    .calc-table tr,
+    .total-row {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .total-row td {
+      background: #f5f5f5 !important;
+      font-weight: 700 !important;
+    }
+    .kpi-value {
+      font-size: 18px !important;
+      line-height: 1.15 !important;
+    }
+    .kpi-delta {
+      margin-top: 1.5mm !important;
+    }
+    .grid-3 .kpi-card { min-height: 0 !important; }
+    section:last-of-type { margin-bottom: 0 !important; }
   }
   section { margin-bottom: 0 !important; }
-  .card { padding: 1.5vh 16px !important; }
-  .input-group { margin-bottom: 1vh; }
+  .card { padding: 15px 16px !important; }
+  .input-group { margin-bottom: 0; }
   .input-group label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 10px; text-transform: uppercase; color: var(--text-3); }
   .input-demo { width: 100%; box-sizing: border-box; }
-  .calc-table input[type="number"] { width: 60px; text-align: right; }
+  .calc-table input[type="number"] { width: 72px; text-align: right; }
   .calc-table input.focus-input { width: 100%; min-width: 200px; }
   .read-only { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.08); color: var(--text-2); pointer-events: none; }
   .total-row td { font-weight: 700; background: var(--surface-2); border-top: 2px solid var(--border-strong); }
-  .palette-label { margin-bottom: 1vh !important; }
-  .kpi-card { padding: 1.2vh 12px !important; }
-  .hero { padding: 2vh var(--space-24) 1vh !important; }
-  .data-table th, .data-table td { padding: 0.8vh 8px !important; }
+  .palette-label { margin-bottom: 8px !important; }
+  .kpi-card { padding: 16px 18px !important; }
+  .hero { padding: 12px var(--space-24) 6px !important; }
+  .data-table th, .data-table td { padding: 10px 12px !important; }
 
   /* ─── EMAIL DRAFT ─── */
   .email-section { position: relative; }
@@ -421,15 +635,6 @@
     transition: border-color 0.2s;
   }
   .email-box:focus-within { border-color: var(--accent); }
-  .copy-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--navy); color: #fff;
-    font-size: 12px; font-weight: 600;
-    padding: 7px 16px; border-radius: var(--radius-sm);
-    border: none; cursor: pointer; transition: all 0.15s;
-    font-family: inherit;
-  }
-  .copy-btn:hover { background: #253d66; }
   .copy-btn.copied { background: var(--success); color: white; }
   .copy-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
 </style>
@@ -437,12 +642,8 @@
 <body>
 
 <div id="captureArea">
-<div class="hero" style="position: relative; border-bottom: 1px solid var(--border); margin-bottom: 12px; padding-bottom: 24px !important; text-align: center;">
+<div class="hero" style="position: relative; margin-bottom: 4px; padding-bottom: 10px !important; text-align: center;">
   <h1 style="margin:0; margin-bottom: 12px;">Performance <em>Appraisal Calc</em></h1>
-  <div class="no-print">
-    <button class="btn btn-navy" id="exportBtn" onclick="downloadPDF()">⬇ Export Appraisal PDF</button>
-    <div style="margin-top:6px; font-size:10px; color:var(--text-3); letter-spacing:0.01em;">This can be attached to the HR email</div>
-  </div>
   <button class="btn btn-ghost no-print" onclick="resetData()" style="position: absolute; right: 24px; bottom: 24px; font-size: 11px; color: var(--text-3); text-decoration: underline; padding: 4px;" title="Reset configuration to defaults">Clear & Start Over</button>
 </div>
 
@@ -451,55 +652,50 @@
   <!-- Employee Details Selection -->
   <section>
     <div class="card">
-      <div class="palette-label" style="margin-bottom:12px;">Associate Profile & Budget Controls</div>
-      <div class="grid-4">
-        <div class="input-group">
+      <div class="profile-grid">
+        <div class="input-group field-card">
           <label>Employee Name</label>
           <input type="text" class="input-demo" id="empName" placeholder="Enter Name..." value="Name 1" oninput="saveData(); updateEmail();">
         </div>
-        <div class="input-group">
+        <div class="input-group field-card">
           <label>Role / Level</label>
-          <select class="input-demo" id="empLevel" onchange="handleLevelChange()">
-            <option value="L1">L1 (Junior Execs)</option>
-            <option value="L2">L2 (Senior Execs)</option>
-            <option value="L3">L3 (Managers)</option>
-            <option value="L4">L4 (Senior Managers)</option>
-            <option value="Custom">Custom</option>
-          </select>
+          <input type="text" class="input-demo" id="empLevel" list="roleLevelOptions" placeholder="Type role or choose a preset" oninput="handleLevelChange()">
+          <datalist id="roleLevelOptions">
+            <option value="L1 (Junior Execs)"></option>
+            <option value="L2 (Senior Execs)"></option>
+            <option value="L3 (Managers)"></option>
+            <option value="L4 (Senior Managers)"></option>
+          </datalist>
         </div>
-        <div class="input-group">
+        <div class="input-group field-card">
           <label>Current Monthly Salary (₹)</label>
           <input type="number" class="input-demo" id="currSalary" value="50000" oninput="handlePctChange()">
         </div>
-        <div class="input-group">
+        <div class="input-group field-card">
           <label>Appraisal Budget %</label>
           <input type="number" step="0.1" class="input-demo" id="budgetPct" value="30" oninput="handlePctChange()">
         </div>
-      </div>
-      <div class="grid-4" style="margin-top: 8px;">
-        <div class="input-group">
+        <div class="input-group field-card">
           <label>Monthly Appraisal Budget (₹)</label>
           <input type="number" class="input-demo" id="monthBudget" value="15000" oninput="handleBudgetChange()">
         </div>
-        <div class="input-group">
+        <div class="input-group field-card">
           <label>Current CTC (₹ / annum)</label>
           <input type="text" class="input-demo read-only" id="currCTC" readonly>
         </div>
-        <div class="input-group">
+        <div class="input-group field-card">
           <label>Ann. Appraisal Budget (₹)</label>
           <input type="text" class="input-demo read-only" id="annBudget" readonly>
         </div>
-        <div class="input-group">
+        <div class="input-group field-card">
           <label>Monthly Pot. Appraised (₹)</label>
           <input type="text" class="input-demo read-only" id="monthPot" readonly>
         </div>
-      </div>
-      <div class="grid-2" style="margin-top: 8px;">
-        <div class="input-group">
+        <div class="input-group field-card">
           <label>Appraisal Meeting Date</label>
           <input type="date" class="input-demo" id="appraisalDate" oninput="saveData(); updateEmail();">
         </div>
-        <div class="input-group">
+        <div class="input-group field-card">
           <label>Effective Date (Revised Salary)</label>
           <input type="date" class="input-demo" id="effectiveDate" oninput="saveData(); updateEmail();">
         </div>
@@ -513,13 +709,22 @@
       <div class="palette-label" style="margin-bottom:12px;">Performance Evaluation Matrix</div>
       <div style="overflow-x: auto;">
         <table class="data-table calc-table">
+          <colgroup>
+            <col class="col-focus">
+            <col class="col-weight">
+            <col class="col-goal">
+            <col class="col-achieved">
+            <col class="col-percent">
+            <col class="col-hike">
+            <col class="col-actions">
+          </colgroup>
           <thead>
             <tr>
               <th>Area of Focus</th>
               <th style="text-align: right;">Weightage (%)</th>
               <th style="text-align: right;">Goal</th>
               <th style="text-align: right;">Achieved</th>
-              <th style="text-align: right;">% Achievement</th>
+              <th style="text-align: right;">% Achieved</th>
               <th style="text-align: right;">Salary Hike (₹)</th>
               <th class="no-print" style="width: 30px;"></th>
             </tr>
@@ -545,7 +750,7 @@
   <!-- Final Results Cards -->
   <section>
     <div class="palette-label" style="margin-bottom:12px;">Final Compensation Projections</div>
-    <div class="grid-3">
+    <div class="grid-3 kpi-grid">
       <div class="kpi-card">
         <div class="kpi-label">Salary Hike Achieved</div>
         <div class="kpi-value" id="kpiHikeVal" style="color: var(--success);">₹ 0</div>
@@ -570,7 +775,7 @@
     <div class="palette-label" style="margin-bottom:4px;">HR Email Draft</div>
     <div style="font-size:11px; color: var(--text-3); margin-bottom:12px;">Auto-populated from the fields above. Copy and paste into your email client.</div>
     <div class="card" style="padding: 0 !important; overflow: hidden;">
-      <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface-2);">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface-2);">
         <span style="font-size:11px; font-weight:600; color:var(--text-2); display:flex; align-items:center; gap:6px;">
           <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;">
             <rect x="2" y="4" width="16" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
@@ -578,13 +783,16 @@
           </svg>
           Appraisal Communication — HR
         </span>
-        <button class="copy-btn" id="copyBtn" onclick="copyEmail()">
-          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="7" y="7" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M5 13H4a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 4 2h8A1.5 1.5 0 0 1 13.5 4v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-          Copy to Clipboard
-        </button>
+        <div style="display:flex; align-items:center; gap:8px;" class="no-print">
+          <button class="btn btn-navy" id="printBtn" onclick="window.print()">Download Calculations to PDF</button>
+          <button class="btn btn-navy copy-btn" id="copyBtn" onclick="copyEmail()">
+            <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="7" y="7" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M5 13H4a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 4 2h8A1.5 1.5 0 0 1 13.5 4v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Copy Email Content
+          </button>
+        </div>
       </div>
       <div style="padding: 8px 16px 6px; border-bottom: 1px solid var(--border); background: var(--surface); display:flex; align-items:baseline; gap:8px;">
         <span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-3); flex-shrink:0;">Subject</span>
@@ -604,6 +812,17 @@
     L4: [65, 15, 10, 10],
     Custom: [0, 0, 0, 0]
   };
+  const levelLabels = {
+    L1: 'L1 (Junior Execs)',
+    L2: 'L2 (Senior Execs)',
+    L3: 'L3 (Managers)',
+    L4: 'L4 (Senior Managers)'
+  };
+  const levelLookup = Object.entries(levelLabels).reduce((lookup, [key, label]) => {
+    lookup[key.toLowerCase()] = key;
+    lookup[label.toLowerCase()] = key;
+    return lookup;
+  }, {});
   
   const parameters = [
     "KRA / Results Score",
@@ -619,6 +838,18 @@
 
   let currentScores = [0, 0, 0, 0]; // Default Achieved
   let currentRowIndex = 0;
+
+  function getPresetLevelKey(roleValue = document.getElementById('empLevel').value) {
+    return levelLookup[(roleValue || '').trim().toLowerCase()] || null;
+  }
+
+  function applyLevelWeights(levelKey) {
+    const weights = levelsData[levelKey] || [];
+    const weightInputs = document.querySelectorAll('.weight-input');
+    weightInputs.forEach((inp, i) => {
+      inp.value = weights[i] !== undefined ? weights[i] : 0;
+    });
+  }
   
   function initTable(rowCount = 4) {
     const tbody = document.getElementById('kraBody');
@@ -635,13 +866,13 @@
     const tr = document.createElement('tr');
     tr.className = "kra-row";
     tr.innerHTML = `
-        <td><input type="text" class="input-demo focus-input" style="font-weight: 600; padding: 2px 5px;" value="${focusVal}" oninput="saveData()"></td>
-        <td style="text-align: right;"><input type="number" class="input-demo weight-input" data-index="${i}" value="${weightVal}" oninput="calculateHikes(); checkCustom();"></td>
-        <td style="text-align: right;"><input type="number" class="input-demo read-only" value="10" readonly></td>
-        <td style="text-align: right;"><input type="number" step="0.1" class="input-demo achieved-input" data-index="${i}" value="${achievedVal}" oninput="calculateHikes()"></td>
-        <td style="text-align: right; font-family: var(--font-mono);" class="pctArch_cell">0%</td>
-        <td style="text-align: right; font-weight: 600;" class="hike_cell">₹ 0</td>
-        <td style="text-align: center; width: 30px; padding: 2px !important;" class="no-print"><button class="btn btn-ghost btn-xs" onclick="removeRow(this)" tabindex="-1" style="color: var(--danger); font-size: 14px; padding: 0 4px;" title="Remove Row">×</button></td>
+        <td><input type="text" class="input-demo focus-input" value="${focusVal}" oninput="saveData()"></td>
+        <td><input type="number" class="input-demo weight-input" data-index="${i}" value="${weightVal}" oninput="calculateHikes(); checkCustom();"></td>
+        <td><input type="number" class="input-demo read-only goal-input" value="10" readonly></td>
+        <td><input type="number" step="0.1" class="input-demo achieved-input" data-index="${i}" value="${achievedVal}" oninput="calculateHikes()"></td>
+        <td class="pctArch_cell">0%</td>
+        <td class="hike_cell">₹ 0</td>
+        <td class="no-print action-cell"><button class="btn btn-ghost btn-xs remove-row-btn" onclick="removeRow(this)" tabindex="-1" title="Remove Row">×</button></td>
     `;
     tbody.appendChild(tr);
     calculateHikes();
@@ -660,17 +891,25 @@
   }
 
   function handleLevelChange() {
-    const level = document.getElementById('empLevel').value;
-    const weights = levelsData[level] || [];
-    const weightInputs = document.querySelectorAll('.weight-input');
-    weightInputs.forEach((inp, i) => {
-      inp.value = weights[i] !== undefined ? weights[i] : 0;
-    });
-    calculateHikes();
+    const empLevelInput = document.getElementById('empLevel');
+    const presetLevel = getPresetLevelKey(empLevelInput.value);
+    empLevelInput.dataset.presetLevel = presetLevel || '';
+
+    if (presetLevel) {
+      applyLevelWeights(presetLevel);
+      calculateHikes();
+      return;
+    }
+
+    saveData();
   }
 
   function checkCustom() {
-    document.getElementById('empLevel').value = 'Custom';
+    const empLevelInput = document.getElementById('empLevel');
+    if (empLevelInput.dataset.presetLevel) {
+      empLevelInput.dataset.presetLevel = '';
+      saveData();
+    }
   }
 
   function handlePctChange() {
@@ -800,18 +1039,17 @@
   }
 
   function copyEmail() {
-    const subject = document.getElementById('emailSubject').textContent;
-    // Strip HTML tags to get clean plain text for clipboard
-    const bodyEl  = document.getElementById('emailDraft');
-    const body    = bodyEl.innerText;
-    const text    = `Subject: ${subject}\n\n${body}`;
+    const subject = document.getElementById('emailSubject').textContent.trim();
+    const bodyEl = document.getElementById('emailDraft');
+    const body = bodyEl.innerText.trim();
+    const text = subject ? `Subject: ${subject}\n\n${body}` : body;
     navigator.clipboard.writeText(text).then(() => {
       const btn = document.getElementById('copyBtn');
       btn.classList.add('copied');
-      btn.innerHTML = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;"><path d="M4 10l5 5L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!`;
+      btn.innerHTML = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;"><path d="M4 10l5 5L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Email Content Copied!`;
       setTimeout(() => {
         btn.classList.remove('copied');
-        btn.innerHTML = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;"><rect x="7" y="7" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 13H4a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 4 2h8A1.5 1.5 0 0 1 13.5 4v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Copy to Clipboard`;
+        btn.innerHTML = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;"><rect x="7" y="7" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 13H4a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 4 2h8A1.5 1.5 0 0 1 13.5 4v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Copy Email Content`;
       }, 2500);
     });
   }
@@ -821,6 +1059,7 @@
       const data = {
         empName: document.getElementById('empName').value,
         empLevel: document.getElementById('empLevel').value,
+        empLevelPreset: document.getElementById('empLevel').dataset.presetLevel || '',
         currSalary: document.getElementById('currSalary').value,
         budgetPct: document.getElementById('budgetPct').value,
         monthBudget: document.getElementById('monthBudget').value,
@@ -843,6 +1082,7 @@
         const data = JSON.parse(saved);
         if (data.empName !== undefined) document.getElementById('empName').value = data.empName;
         if (data.empLevel !== undefined) document.getElementById('empLevel').value = data.empLevel;
+        document.getElementById('empLevel').dataset.presetLevel = data.empLevelPreset || '';
         if (data.currSalary !== undefined) document.getElementById('currSalary').value = data.currSalary;
         if (data.budgetPct !== undefined) document.getElementById('budgetPct').value = data.budgetPct;
         if (data.monthBudget !== undefined) document.getElementById('monthBudget').value = data.monthBudget;
@@ -873,97 +1113,17 @@
   // Initialize
   initTable();
   if (!loadData()) {
-    document.getElementById('empLevel').value = 'L1';
-    handleLevelChange();
+    document.getElementById('empLevel').value = levelLabels.L1;
+    document.getElementById('empLevel').dataset.presetLevel = 'L1';
+    applyLevelWeights('L1');
   } else {
-    // Force standard level weightages if not custom to overcome legacy cached values
-    if (document.getElementById('empLevel').value !== 'Custom') {
-      handleLevelChange();
+    const savedPreset = document.getElementById('empLevel').dataset.presetLevel || getPresetLevelKey();
+    if (savedPreset) {
+      document.getElementById('empLevel').dataset.presetLevel = savedPreset;
+      applyLevelWeights(savedPreset);
     }
   }
   calculateBasics();
-
-  async function downloadPDF() {
-    const btn = document.getElementById('exportBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Generating PDF…';
-
-    const captureEl  = document.getElementById('captureArea');
-    const emailSection = document.querySelector('.email-section');
-    const noPrintEls = captureEl.querySelectorAll('.no-print');
-
-    // 1. Hide email section & no-print elements (buttons, reset link)
-    emailSection.style.display = 'none';
-    noPrintEls.forEach(el => el.style.display = 'none');
-
-    // 2. Temporarily force capture area to a tight, fixed-width layout
-    //    matching the .page max-width so there are no empty side margins.
-    const contentWidth = 1080; // matches .page max-width
-    const origStyles = {
-      width: captureEl.style.width,
-      maxWidth: captureEl.style.maxWidth,
-      margin: captureEl.style.margin,
-      padding: captureEl.style.padding
-    };
-    captureEl.style.width    = contentWidth + 'px';
-    captureEl.style.maxWidth = contentWidth + 'px';
-    captureEl.style.margin   = '0';
-    captureEl.style.padding  = '0';
-
-    try {
-      const canvas = await html2canvas(captureEl, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#f3f2ee',
-        width: contentWidth,
-        windowWidth: contentWidth,
-        scrollX: 0,
-        scrollY: -window.scrollY
-      });
-
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const { jsPDF } = window.jspdf;
-
-      // Scale captured image to fit A4 width, height scales proportionally
-      const a4Width  = 210; // mm
-      const a4Height = (canvas.height / canvas.width) * a4Width;
-
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: [a4Width, a4Height]
-      });
-
-      pdf.addImage(imgData, 'JPEG', 0, 0, a4Width, a4Height);
-
-      const empName = document.getElementById('empName').value.trim() || 'Appraisal';
-      const fileName = `Appraisal_${empName.replace(/\s+/g, '_')}.pdf`;
-
-      // Use data URI for download — bypasses blob storage issues
-      const pdfDataUri = pdf.output('datauristring');
-      const a = document.createElement('a');
-      a.href = pdfDataUri;
-      a.download = fileName;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } catch (err) {
-      console.error('PDF export failed', err);
-      alert('PDF generation failed. Please try again.');
-    } finally {
-      // 3. Restore everything
-      captureEl.style.width    = origStyles.width;
-      captureEl.style.maxWidth = origStyles.maxWidth;
-      captureEl.style.margin   = origStyles.margin;
-      captureEl.style.padding  = origStyles.padding;
-      emailSection.style.display = '';
-      noPrintEls.forEach(el => el.style.display = '');
-      btn.disabled = false;
-      btn.innerHTML = '⬇ Export Appraisal PDF';
-    }
-  }
 
 </script>
 
