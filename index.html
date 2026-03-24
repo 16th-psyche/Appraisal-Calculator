@@ -3,10 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Performance Appraisal Calculator</title>
+<title>Performance Appraisal Calc</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -402,14 +404,44 @@
   .kpi-card { padding: 1.2vh 12px !important; }
   .hero { padding: 2vh var(--space-24) 1vh !important; }
   .data-table th, .data-table td { padding: 0.8vh 8px !important; }
+
+  /* ─── EMAIL DRAFT ─── */
+  .email-section { position: relative; }
+  .email-box {
+    background: var(--surface-2);
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text-1);
+    white-space: pre-wrap;
+    font-family: var(--font-family);
+    min-height: 220px;
+    transition: border-color 0.2s;
+  }
+  .email-box:focus-within { border-color: var(--accent); }
+  .copy-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--navy); color: #fff;
+    font-size: 12px; font-weight: 600;
+    padding: 7px 16px; border-radius: var(--radius-sm);
+    border: none; cursor: pointer; transition: all 0.15s;
+    font-family: inherit;
+  }
+  .copy-btn:hover { background: #253d66; }
+  .copy-btn.copied { background: var(--success); color: white; }
+  .copy-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
 </style>
 </head>
 <body>
 
+<div id="captureArea">
 <div class="hero" style="position: relative; border-bottom: 1px solid var(--border); margin-bottom: 12px; padding-bottom: 24px !important; text-align: center;">
-  <h1 style="margin:0; margin-bottom: 12px;">Performance <em>Appraisal Modeler</em></h1>
+  <h1 style="margin:0; margin-bottom: 12px;">Performance <em>Appraisal Calc</em></h1>
   <div class="no-print">
-    <button class="btn btn-navy" onclick="window.print()">Export Appraisal Report</button>
+    <button class="btn btn-navy" id="exportBtn" onclick="downloadPDF()">⬇ Export Appraisal PDF</button>
+    <div style="margin-top:6px; font-size:10px; color:var(--text-3); letter-spacing:0.01em;">This can be attached to the HR email</div>
   </div>
   <button class="btn btn-ghost no-print" onclick="resetData()" style="position: absolute; right: 24px; bottom: 24px; font-size: 11px; color: var(--text-3); text-decoration: underline; padding: 4px;" title="Reset configuration to defaults">Clear & Start Over</button>
 </div>
@@ -423,7 +455,7 @@
       <div class="grid-4">
         <div class="input-group">
           <label>Employee Name</label>
-          <input type="text" class="input-demo" id="empName" placeholder="Enter Name..." value="Name 1" oninput="saveData()">
+          <input type="text" class="input-demo" id="empName" placeholder="Enter Name..." value="Name 1" oninput="saveData(); updateEmail();">
         </div>
         <div class="input-group">
           <label>Role / Level</label>
@@ -460,6 +492,16 @@
         <div class="input-group">
           <label>Monthly Pot. Appraised (₹)</label>
           <input type="text" class="input-demo read-only" id="monthPot" readonly>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top: 8px;">
+        <div class="input-group">
+          <label>Appraisal Meeting Date</label>
+          <input type="date" class="input-demo" id="appraisalDate" oninput="saveData(); updateEmail();">
+        </div>
+        <div class="input-group">
+          <label>Effective Date (Revised Salary)</label>
+          <input type="date" class="input-demo" id="effectiveDate" oninput="saveData(); updateEmail();">
         </div>
       </div>
     </div>
@@ -521,7 +563,38 @@
       </div>
     </div>
   </section>
+
+
+  <!-- HR Email Draft -->
+  <section class="email-section no-print">
+    <div class="palette-label" style="margin-bottom:4px;">HR Email Draft</div>
+    <div style="font-size:11px; color: var(--text-3); margin-bottom:12px;">Auto-populated from the fields above. Copy and paste into your email client.</div>
+    <div class="card" style="padding: 0 !important; overflow: hidden;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface-2);">
+        <span style="font-size:11px; font-weight:600; color:var(--text-2); display:flex; align-items:center; gap:6px;">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;">
+            <rect x="2" y="4" width="16" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M2 7l8 5 8-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Appraisal Communication — HR
+        </span>
+        <button class="copy-btn" id="copyBtn" onclick="copyEmail()">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="7" y="7" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M5 13H4a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 4 2h8A1.5 1.5 0 0 1 13.5 4v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Copy to Clipboard
+        </button>
+      </div>
+      <div style="padding: 8px 16px 6px; border-bottom: 1px solid var(--border); background: var(--surface); display:flex; align-items:baseline; gap:8px;">
+        <span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-3); flex-shrink:0;">Subject</span>
+        <span id="emailSubject" style="font-size:12px; font-weight:600; color:var(--text-1);"></span>
+      </div>
+      <div class="email-box" id="emailDraft"></div>
+    </div>
+  </section>
 </div>
+</div><!-- /#captureArea -->
 
 <script>
   const levelsData = {
@@ -682,7 +755,65 @@
     document.getElementById('kpiMonthSal').innerText = formatCurrency(newMonthSal);
     document.getElementById('kpiAnnSal').innerText = formatCurrency(newMonthSal * 12);
     
+    updateEmail();
     saveData();
+  }
+
+  function formatDateDisplay(isoDate) {
+    if (!isoDate) return '________________';
+    const [y, m, d] = isoDate.split('-');
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+  }
+
+  function formatDateShort(isoDate) {
+    if (!isoDate) return '________________';
+    const [y, m, d] = isoDate.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+  }
+
+  function updateEmail() {
+    const name         = document.getElementById('empName').value.trim() || '________________';
+    const sal          = parseFloat(document.getElementById('currSalary').value) || 0;
+    const prevMonthly  = formatCurrency(sal);
+    const newMonthly   = document.getElementById('kpiMonthSal').innerText;
+    const appraisalRaw = document.getElementById('appraisalDate').value;
+    const effectiveDate  = formatDateDisplay(document.getElementById('effectiveDate').value);
+    const appraisalDate  = formatDateDisplay(appraisalRaw);
+    const appraisalShort = formatDateShort(appraisalRaw);
+
+    // Subject line
+    document.getElementById('emailSubject').textContent =
+      `Performance Appraisal - ${name} | ${appraisalShort}`;
+
+    // Body with bold variable values
+    document.getElementById('emailDraft').innerHTML =
+      `Hi HR Team,<br><br>` +
+      `The appraisal discussion with <strong>${name}</strong> has been completed. Please find the revised compensation details below for your records and further processing.<br><br>` +
+      `1. Team Member Name: <strong>${name}</strong><br>` +
+      `2. Previous Salary: <strong>${prevMonthly}</strong> per month<br>` +
+      `3. Revised Salary: <strong>${newMonthly}</strong> per month<br>` +
+      `4. Effective Date: <strong>${effectiveDate}</strong><br>` +
+      `5. Appraisal Meeting Date: <strong>${appraisalDate}</strong><br><br>` +
+      `Thank you.`;
+  }
+
+  function copyEmail() {
+    const subject = document.getElementById('emailSubject').textContent;
+    // Strip HTML tags to get clean plain text for clipboard
+    const bodyEl  = document.getElementById('emailDraft');
+    const body    = bodyEl.innerText;
+    const text    = `Subject: ${subject}\n\n${body}`;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.classList.add('copied');
+      btn.innerHTML = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;"><path d="M4 10l5 5L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!`;
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;"><rect x="7" y="7" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 13H4a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 4 2h8A1.5 1.5 0 0 1 13.5 4v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Copy to Clipboard`;
+      }, 2500);
+    });
   }
 
   function saveData() {
@@ -693,6 +824,8 @@
         currSalary: document.getElementById('currSalary').value,
         budgetPct: document.getElementById('budgetPct').value,
         monthBudget: document.getElementById('monthBudget').value,
+        appraisalDate: document.getElementById('appraisalDate').value,
+        effectiveDate: document.getElementById('effectiveDate').value,
         focusAreas: Array.from(document.querySelectorAll('.focus-input')).map(el => el.value),
         weights: Array.from(document.querySelectorAll('.weight-input')).map(el => el.value),
         achieved: Array.from(document.querySelectorAll('.achieved-input')).map(el => el.value)
@@ -713,6 +846,8 @@
         if (data.currSalary !== undefined) document.getElementById('currSalary').value = data.currSalary;
         if (data.budgetPct !== undefined) document.getElementById('budgetPct').value = data.budgetPct;
         if (data.monthBudget !== undefined) document.getElementById('monthBudget').value = data.monthBudget;
+        if (data.appraisalDate !== undefined) document.getElementById('appraisalDate').value = data.appraisalDate;
+        if (data.effectiveDate !== undefined) document.getElementById('effectiveDate').value = data.effectiveDate;
         
         if (data.focusAreas && data.focusAreas.length > 0) {
           const tbody = document.getElementById('kraBody');
@@ -748,7 +883,90 @@
   }
   calculateBasics();
 
+  async function downloadPDF() {
+    const btn = document.getElementById('exportBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating PDF…';
+
+    const captureEl  = document.getElementById('captureArea');
+    const emailSection = document.querySelector('.email-section');
+    const noPrintEls = captureEl.querySelectorAll('.no-print');
+
+    // 1. Hide email section & no-print elements (buttons, reset link)
+    emailSection.style.display = 'none';
+    noPrintEls.forEach(el => el.style.display = 'none');
+
+    // 2. Temporarily force capture area to a tight, fixed-width layout
+    //    matching the .page max-width so there are no empty side margins.
+    const contentWidth = 1080; // matches .page max-width
+    const origStyles = {
+      width: captureEl.style.width,
+      maxWidth: captureEl.style.maxWidth,
+      margin: captureEl.style.margin,
+      padding: captureEl.style.padding
+    };
+    captureEl.style.width    = contentWidth + 'px';
+    captureEl.style.maxWidth = contentWidth + 'px';
+    captureEl.style.margin   = '0';
+    captureEl.style.padding  = '0';
+
+    try {
+      const canvas = await html2canvas(captureEl, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#f3f2ee',
+        width: contentWidth,
+        windowWidth: contentWidth,
+        scrollX: 0,
+        scrollY: -window.scrollY
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const { jsPDF } = window.jspdf;
+
+      // Scale captured image to fit A4 width, height scales proportionally
+      const a4Width  = 210; // mm
+      const a4Height = (canvas.height / canvas.width) * a4Width;
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [a4Width, a4Height]
+      });
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, a4Width, a4Height);
+
+      const empName = document.getElementById('empName').value.trim() || 'Appraisal';
+      const fileName = `Appraisal_${empName.replace(/\s+/g, '_')}.pdf`;
+
+      // Use data URI for download — bypasses blob storage issues
+      const pdfDataUri = pdf.output('datauristring');
+      const a = document.createElement('a');
+      a.href = pdfDataUri;
+      a.download = fileName;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('PDF export failed', err);
+      alert('PDF generation failed. Please try again.');
+    } finally {
+      // 3. Restore everything
+      captureEl.style.width    = origStyles.width;
+      captureEl.style.maxWidth = origStyles.maxWidth;
+      captureEl.style.margin   = origStyles.margin;
+      captureEl.style.padding  = origStyles.padding;
+      emailSection.style.display = '';
+      noPrintEls.forEach(el => el.style.display = '');
+      btn.disabled = false;
+      btn.innerHTML = '⬇ Export Appraisal PDF';
+    }
+  }
+
 </script>
+
 
 </body>
 </html>
